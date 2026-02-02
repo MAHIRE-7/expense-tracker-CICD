@@ -4,6 +4,7 @@ metadata:
   name: mongo-statefulset
   namespace: et-ns
 spec:
+  serviceName: mongo-service
   replicas: 1
   selector:
     matchLabels:
