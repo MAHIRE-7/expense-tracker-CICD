@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: expense-tracker-container
-          image: 188381035573.dkr.ecr.ap-south-1.amazonaws.com/expensetracker:latest
+          image: 188381035573.dkr.ecr.ap-south-1.amazonaws.com/expensetracker:8
           ports:
             - containerPort: 5000
           env:
