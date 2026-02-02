@@ -1,0 +1,65 @@
+pipeline{
+    agent {label 'jenkins-agent'}
+    environment{
+        VERSION="${BUILD_NUMBER}"
+        IMAGE="188381035573.dkr.ecr.ap-south-1.amazonaws.com/expensetracker"
+    }
+    stages{
+        stage("Code Clone"){
+            steps{
+                git url: "https://github.com/MAHIRE-7/expense-tracker-CICD", branch: "main"
+            }
+        }
+        stage("Build Image"){
+            steps{
+                sh "docker build -t $IMAGE:$VERSION ."
+            }
+        }
+        stage("Push Image to ECR"){
+            steps{
+                sh '''
+                    aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 188381035573.dkr.ecr.ap-south-1.amazonaws.com
+                    docker push $IMAGE:$VERSION
+                '''
+            }
+        }
+        stage("Image Clean"){
+            steps{
+                sh "docker rmi $IMAGE:$VERSION"
+            }
+        }
+        stage("Tag Update"){
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'gitCredentials', 
+                                                 usernameVariable: 'GIT_USER', 
+                                                 passwordVariable: 'GIT_PASS')]){
+                                                     sh""" 
+                                                      echo "Updating Kubernetes manifest with new image tag"
+                                                        
+            
+            sed -i 's|image: .*|image: ${IMAGE}:${VERSION}|' k8s/app-deployment.yml
+
+            git config user.email "manodayahire786@gmail.com"
+            git config user.name "Manoday Ahire"
+
+            git add k8s/app-deployment.yml
+            git commit -m  "K8s Image Tag Updated With $IMAGE:$VERSION "
+
+            git push https://${GIT_USER}:${GIT_PASS}@github.com/MAHIRE-7/expense-tracker-CICD HEAD:main
+                                                     """
+                                                 }
+            }
+        }
+
+        stage("Deploy on K8S"){
+            steps{
+                sh '''
+                kubectl apply -f k8s/
+                '''
+            }
+        }
+
+    }
+
+
+}

@@ -1,98 +1,51 @@
-# Flask Expense Tracker with MongoDB
+# Flask Expense Tracker CI/CD
 
-A modern expense tracking application built with Flask and MongoDB, featuring a beautiful glassmorphism UI design.
+A containerized expense tracking application with automated CI/CD pipeline using Jenkins, Docker, and Kubernetes.
 
-## Features
+## Architecture
 
-- 💰 Add and track expenses with categories
-- 📊 Real-time expense statistics
-- 🗂️ Category-based organization (Food, Transport, Shopping, Bills, etc.)
-- 📅 Date-based expense tracking
-- 🗑️ Delete expenses
-- 💎 Modern glassmorphism UI design
-- 📱 Responsive design
-
-## Tech Stack
-
-- **Backend**: Python Flask
-- **Database**: MongoDB
-- **Frontend**: HTML, CSS, JavaScript
-- **Containerization**: Docker
+- **Application**: Flask web app with MongoDB
+- **CI/CD**: Jenkins pipeline with GitOps workflow
+- **Container Registry**: AWS ECR
 - **Orchestration**: Kubernetes
+- **Storage**: Persistent volumes for MongoDB
+
+## Pipeline Stages
+
+1. **Code Clone** - Pulls latest code from GitHub
+2. **Build Image** - Creates Docker image with build number tag
+3. **Push to ECR** - Uploads image to AWS Elastic Container Registry
+4. **Image Cleanup** - Removes local Docker image
+5. **Tag Update** - Updates Kubernetes manifest with new image tag
+6. **Deploy** - Applies updated manifests to Kubernetes cluster
 
 ## Quick Start
 
-### 1. Build Docker Image
-```bash
-cd "L3 Flask-expense-tracker"
-docker build -t expense-tracker:latest .
-```
+### Prerequisites
+- Jenkins with Docker and kubectl
+- AWS ECR repository
+- Kubernetes cluster
+- GitHub repository with webhook
 
-### 2. Deploy to Kubernetes
-```bash
-# Apply all manifests
-kubectl apply -f k8s/
+### Setup
+1. Configure Jenkins credentials for GitHub and AWS
+2. Create Jenkins pipeline job pointing to this repository
+3. Set up GitHub webhook to trigger builds
+4. Deploy: Pipeline runs automatically on code push
 
-# Check deployment status
-kubectl get pods
-kubectl get services
-```
-
-### 3. Access Application
-```bash
-# Get minikube IP
-minikube ip
-
-# Access at: http://<minikube-ip>:30190
-```
-
-## API Endpoints
-
-- `GET /` - Main application interface
-- `GET /api/expenses` - Get all expenses with total
-- `POST /api/expenses` - Add new expense
-- `DELETE /api/expenses/<description>` - Delete expense
-- `GET /api/stats` - Get category-wise statistics
-
-## Database Schema
-
-### Expense Document
-```json
-{
-  "description": "Coffee",
-  "amount": 4.50,
-  "category": "Food",
-  "date": "2024-01-15"
-}
-```
-
-## Kubernetes Resources
-
-- **MongoDB Deployment**: Single replica with persistent storage
-- **Flask App Deployment**: 2 replicas for high availability
-- **Services**: Internal MongoDB service and external NodePort
-- **PersistentVolume**: 1Gi storage for MongoDB data
-- **PersistentVolumeClaim**: Storage claim for data persistence
+### Access
+- Application: `http://<cluster-ip>:30190`
+- Monitor: `kubectl get pods -n et-ns`
 
 ## Environment Variables
 
-- `MONGO_HOST`: MongoDB service hostname (default: localhost)
-- `MONGO_PORT`: MongoDB port (default: 27017)
+- `VERSION`: Build number from Jenkins
+- `IMAGE`: ECR repository URL
 
-## Port Configuration
+## Kubernetes Resources
 
-- **Application**: Port 30190 (NodePort)
-- **MongoDB**: Port 27017 (Internal)
-
-## Cleanup
-
-```bash
-kubectl delete -f k8s/
-```
-
-## Development
-
-1. Install dependencies: `pip install -r requirements.txt`
-2. Run MongoDB locally: `docker run -d -p 27017:27017 mongo:5.0`
-3. Start Flask app: `python app.py`
-4. Access at: http://localhost:5000
+- Namespace: `et-ns`
+- MongoDB StatefulSet with persistent storage
+- Flask app deployment (2 replicas)
+- Services and ConfigMaps
+- PersistentVolumeClaim (1Gi)
