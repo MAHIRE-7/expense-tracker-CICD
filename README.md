@@ -4,7 +4,7 @@ A complete DevOps implementation of a containerized expense tracking application
 
 ## 🏗️ Architecture Overview
 
-![Architecture Diagram](readme/arc.jpeg)
+![Architecture Diagram](readme/arc.jpg)
 
 ### Technology Stack
 - **Frontend/Backend**: Flask (Python)
